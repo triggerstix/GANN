@@ -1,111 +1,69 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card.jsx'
 import { Badge } from '@/components/ui/badge.jsx'
 import { Activity, TrendingUp, TrendingDown, DollarSign, BarChart3, AlertCircle } from 'lucide-react'
+import io from 'socket.io-client'
 
 const MarketData = ({ symbol }) => {
   const [marketInfo, setMarketInfo] = useState(null)
-  const [priceHistory, setPriceHistory] = useState([])
   const [loading, setLoading] = useState(true)
   const [lastUpdate, setLastUpdate] = useState(new Date())
-  const [connectionStatus, setConnectionStatus] = useState('connecting')
+  const [connectionStatus, setConnectionStatus] = useState('disconnected')
+  const socketRef = useRef(null)
 
   useEffect(() => {
-    // Simulate fetching market data
-    // In production, this would connect to a real API like Alpaca, Polygon.io, or Finnhub
-    fetchMarketData()
-    
-    // Simulate real-time updates
-    const interval = setInterval(() => {
-      updateMarketData()
-      setLastUpdate(new Date())
-    }, 3000)
-
-    return () => clearInterval(interval)
-  }, [symbol])
-
-  const fetchMarketData = () => {
     setLoading(true)
     setConnectionStatus('connecting')
-    
-    // Simulate API call
-    setTimeout(() => {
-      const basePrice = getBasePriceForSymbol(symbol)
-      const change = (Math.random() - 0.5) * 10
-      const changePercent = (change / basePrice) * 100
-      
-      setMarketInfo({
-        symbol: symbol,
-        name: getNameForSymbol(symbol),
-        price: basePrice + change,
-        change: change,
-        changePercent: changePercent,
-        open: basePrice - 2,
-        high: basePrice + 5,
-        low: basePrice - 3,
-        volume: Math.floor(Math.random() * 50000000) + 10000000,
-        marketCap: Math.floor(Math.random() * 1000000000000) + 100000000000,
-        pe: (15 + Math.random() * 20).toFixed(2),
-        dividendYield: (Math.random() * 3).toFixed(2),
-        week52High: basePrice + 20,
-        week52Low: basePrice - 25,
-      })
-      
+
+    // Connect to SocketIO backend
+    socketRef.current = io("/") // Connect to the same host as the frontend
+
+    socketRef.current.on('connect', () => {
+      console.log('SocketIO connected')
       setConnectionStatus('connected')
-      setLoading(false)
-    }, 1000)
-  }
-
-  const updateMarketData = () => {
-    if (!marketInfo) return
-    
-    const priceChange = (Math.random() - 0.5) * 2
-    const newPrice = marketInfo.price + priceChange
-    const newChange = newPrice - marketInfo.open
-    const newChangePercent = (newChange / marketInfo.open) * 100
-    
-    setMarketInfo(prev => ({
-      ...prev,
-      price: newPrice,
-      change: newChange,
-      changePercent: newChangePercent,
-      high: Math.max(prev.high, newPrice),
-      low: Math.min(prev.low, newPrice),
-    }))
-
-    setPriceHistory(prev => {
-      const newHistory = [...prev, { time: new Date(), price: newPrice }]
-      return newHistory.slice(-20) // Keep last 20 data points
+      fetchMarketInfo(symbol)
     })
-  }
 
-  const getBasePriceForSymbol = (sym) => {
-    const prices = {
-      'AAPL': 175,
-      'GOOGL': 140,
-      'MSFT': 380,
-      'TSLA': 250,
-      'SPY': 450,
-      'BTC-USD': 45000,
-      'ETH-USD': 2500,
+    socketRef.current.on('disconnect', () => {
+      console.log('SocketIO disconnected')
+      setConnectionStatus('disconnected')
+    })
+
+    socketRef.current.on('market_update', (data) => {
+      if (data.symbol === symbol) {
+        setMarketInfo(data)
+        setLastUpdate(new Date())
+      }
+    })
+
+    socketRef.current.on('status', (data) => {
+      console.log('Backend Status:', data.msg)
+    })
+
+    return () => {
+      if (socketRef.current) {
+        socketRef.current.disconnect()
+      }
     }
-    return prices[sym] || 100
-  }
+  }, [symbol])
 
-  const getNameForSymbol = (sym) => {
-    const names = {
-      'AAPL': 'Apple Inc.',
-      'GOOGL': 'Alphabet Inc.',
-      'MSFT': 'Microsoft Corporation',
-      'TSLA': 'Tesla, Inc.',
-      'SPY': 'SPDR S&P 500 ETF',
-      'BTC-USD': 'Bitcoin USD',
-      'ETH-USD': 'Ethereum USD',
+  const fetchMarketInfo = async (currentSymbol) => {
+    try {
+      const response = await fetch(`/api/market_info/${currentSymbol}`)
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+      const data = await response.json()
+      setMarketInfo(data)
+      setLoading(false)
+    } catch (error) {
+      console.error('Error fetching market info:', error)
+      setLoading(false)
+      setConnectionStatus('error')
     }
-    return names[sym] || 'Unknown'
   }
 
-  if (loading) {
+  if (loading || !marketInfo) {
     return (
       <Card className="bg-slate-800/50 border-slate-700">
         <CardContent className="pt-6">
@@ -128,10 +86,10 @@ const MarketData = ({ symbol }) => {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className={`w-3 h-3 rounded-full animate-pulse ${
-                connectionStatus === 'connected' ? 'bg-green-500' : 'bg-yellow-500'
+                connectionStatus === 'connected' ? 'bg-green-500' : connectionStatus === 'connecting' ? 'bg-yellow-500' : 'bg-red-500'
               }`}></div>
               <span className="text-sm text-slate-300">
-                {connectionStatus === 'connected' ? 'Live Market Data' : 'Connecting...'}
+                {connectionStatus === 'connected' ? 'Live Market Data' : connectionStatus === 'connecting' ? 'Connecting...' : 'Disconnected'}
               </span>
             </div>
             <span className="text-xs text-slate-500">
@@ -257,7 +215,8 @@ const MarketData = ({ symbol }) => {
             <div>
               <h4 className="text-sm font-semibold text-blue-400 mb-2">Live Market Data Integration</h4>
               <p className="text-xs text-slate-400 mb-3">
-                This demo uses simulated data. In production, this component connects to live market data APIs such as:
+                This component connects to the Flask backend for real-time market data. 
+                The backend uses simulated data for demonstration, but can be extended to integrate with APIs like Alpaca, Polygon.io, or Finnhub.
               </p>
               <div className="space-y-2 text-xs text-slate-400">
                 <div className="flex items-center gap-2">

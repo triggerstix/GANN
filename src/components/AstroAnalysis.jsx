@@ -4,190 +4,52 @@ import { Badge } from '@/components/ui/badge.jsx'
 import { Moon, Sun, Star, Orbit } from 'lucide-react'
 
 const AstroAnalysis = () => {
-  const [currentDate, setCurrentDate] = useState(new Date())
-  const [lunarPhase, setLunarPhase] = useState({})
+  const [lunarPhase, setLunarPhase] = useState(null)
   const [planetaryPositions, setPlanetaryPositions] = useState([])
   const [aspects, setAspects] = useState([])
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    calculateAstrologicalData()
-    const interval = setInterval(() => {
-      setCurrentDate(new Date())
-      calculateAstrologicalData()
-    }, 60000) // Update every minute
+    const fetchAstroData = async () => {
+      setLoading(true)
+      try {
+        const [lunarRes, planetsRes, aspectsRes] = await Promise.all([
+          fetch('/api/lunar_phase'),
+          fetch('/api/planetary_positions'),
+          fetch('/api/planetary_aspects'),
+        ])
 
-    return () => clearInterval(interval)
+        const lunarData = await lunarRes.json()
+        const planetsData = await planetsRes.json()
+        const aspectsData = await aspectsRes.json()
+
+        setLunarPhase(lunarData)
+        setPlanetaryPositions(planetsData)
+        setAspects(aspectsData)
+      } catch (error) {
+        console.error('Error fetching astrological data:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchAstroData()
+    const interval = setInterval(fetchAstroData, 60000); // Refresh every minute
+    return () => clearInterval(interval);
   }, [])
 
-  const calculateAstrologicalData = () => {
-    // Calculate lunar phase (simplified calculation)
-    const date = new Date()
-    const year = date.getFullYear()
-    const month = date.getMonth() + 1
-    const day = date.getDate()
-    
-    // Simplified lunar phase calculation
-    const lunarMonth = 29.53058867
-    const knownNewMoon = new Date(2000, 0, 6, 18, 14)
-    const daysSinceKnownNewMoon = (date - knownNewMoon) / (1000 * 60 * 60 * 24)
-    const lunarAge = daysSinceKnownNewMoon % lunarMonth
-    const phasePercent = (lunarAge / lunarMonth) * 100
-    
-    let phaseName = ''
-    let phaseIcon = '🌑'
-    let marketInfluence = ''
-    
-    if (phasePercent < 6.25) {
-      phaseName = 'New Moon'
-      phaseIcon = '🌑'
-      marketInfluence = 'New beginnings, potential trend reversals'
-    } else if (phasePercent < 18.75) {
-      phaseName = 'Waxing Crescent'
-      phaseIcon = '🌒'
-      marketInfluence = 'Building momentum, bullish tendency'
-    } else if (phasePercent < 31.25) {
-      phaseName = 'First Quarter'
-      phaseIcon = '🌓'
-      marketInfluence = 'Action phase, increased volatility'
-    } else if (phasePercent < 43.75) {
-      phaseName = 'Waxing Gibbous'
-      phaseIcon = '🌔'
-      marketInfluence = 'Refinement, continued upward pressure'
-    } else if (phasePercent < 56.25) {
-      phaseName = 'Full Moon'
-      phaseIcon = '🌕'
-      marketInfluence = 'Peak energy, potential tops/bottoms'
-    } else if (phasePercent < 68.75) {
-      phaseName = 'Waning Gibbous'
-      phaseIcon = '🌖'
-      marketInfluence = 'Distribution, bearish tendency'
-    } else if (phasePercent < 81.25) {
-      phaseName = 'Last Quarter'
-      phaseIcon = '🌗'
-      marketInfluence = 'Crisis phase, trend exhaustion'
-    } else {
-      phaseName = 'Waning Crescent'
-      phaseIcon = '🌘'
-      marketInfluence = 'Release, preparing for new cycle'
-    }
-    
-    setLunarPhase({
-      name: phaseName,
-      icon: phaseIcon,
-      percent: phasePercent.toFixed(1),
-      age: lunarAge.toFixed(1),
-      influence: marketInfluence
-    })
-
-    // Simplified planetary positions (for demonstration)
-    setPlanetaryPositions([
-      { 
-        planet: 'Mercury', 
-        sign: 'Capricorn', 
-        degree: 15, 
-        icon: '☿',
-        influence: 'Communication, short-term trading',
-        color: '#94a3b8'
-      },
-      { 
-        planet: 'Venus', 
-        sign: 'Aquarius', 
-        degree: 8, 
-        icon: '♀',
-        influence: 'Market sentiment, value assessment',
-        color: '#ec4899'
-      },
-      { 
-        planet: 'Mars', 
-        sign: 'Pisces', 
-        degree: 22, 
-        icon: '♂',
-        influence: 'Energy, momentum, volatility',
-        color: '#ef4444'
-      },
-      { 
-        planet: 'Jupiter', 
-        sign: 'Taurus', 
-        degree: 12, 
-        icon: '♃',
-        influence: 'Expansion, bull markets, optimism',
-        color: '#f59e0b'
-      },
-      { 
-        planet: 'Saturn', 
-        sign: 'Pisces', 
-        degree: 18, 
-        icon: '♄',
-        influence: 'Restriction, bear markets, reality',
-        color: '#6366f1'
-      },
-      { 
-        planet: 'Uranus', 
-        sign: 'Taurus', 
-        degree: 25, 
-        icon: '♅',
-        influence: 'Sudden changes, innovation, disruption',
-        color: '#14b8a6'
-      },
-      { 
-        planet: 'Neptune', 
-        sign: 'Pisces', 
-        degree: 27, 
-        icon: '♆',
-        influence: 'Illusion, speculation, uncertainty',
-        color: '#8b5cf6'
-      },
-      { 
-        planet: 'Pluto', 
-        sign: 'Aquarius', 
-        degree: 2, 
-        icon: '♇',
-        influence: 'Transformation, power shifts, extremes',
-        color: '#64748b'
-      },
-    ])
-
-    // Calculate aspects (simplified)
-    setAspects([
-      {
-        planets: 'Jupiter ♃ Trine Saturn ♄',
-        angle: 120,
-        type: 'Trine',
-        influence: 'Harmonious',
-        description: 'Balanced growth and structure, favorable for steady gains',
-        color: '#10b981'
-      },
-      {
-        planets: 'Mars ♂ Square Uranus ♅',
-        angle: 90,
-        type: 'Square',
-        influence: 'Challenging',
-        description: 'Sudden volatility, unexpected price movements, risk',
-        color: '#ef4444'
-      },
-      {
-        planets: 'Venus ♀ Sextile Neptune ♆',
-        angle: 60,
-        type: 'Sextile',
-        influence: 'Opportunity',
-        description: 'Optimistic sentiment, potential overvaluation',
-        color: '#3b82f6'
-      },
-      {
-        planets: 'Mercury ☿ Conjunction Pluto ♇',
-        angle: 0,
-        type: 'Conjunction',
-        influence: 'Intense',
-        description: 'Deep analysis, transformative information, power plays',
-        color: '#f59e0b'
-      },
-    ])
+  if (loading || !lunarPhase) {
+    return (
+      <Card className="bg-slate-800/50 border-slate-700">
+        <CardContent className="pt-6">
+          <div className="h-96 flex flex-col items-center justify-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mb-4"></div>
+            <p className="text-slate-400">Loading astrological data...</p>
+          </div>
+        </CardContent>
+      </Card>
+    )
   }
-
-  const zodiacSigns = [
-    'Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo',
-    'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces'
-  ]
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -218,7 +80,7 @@ const AstroAnalysis = () => {
           </div>
 
           <div className="space-y-2">
-            <h4 className="text-sm font-semibold text-slate-300">Historical Correlation</h4>
+            <h4 className="text-sm font-semibold text-slate-300">Historical Correlation (Simulated)</h4>
             <div className="grid grid-cols-2 gap-2 text-xs">
               <div className="bg-slate-900/50 p-2 rounded">
                 <p className="text-slate-400">New Moon</p>
@@ -336,7 +198,7 @@ const AstroAnalysis = () => {
               <div>
                 <span className="text-orange-400 font-semibold">Conjunction (0°)</span>
                 <p className="text-slate-500">Intense focus</p>
-              </div>
+              }
               <div>
                 <span className="text-purple-400 font-semibold">Opposition (180°)</span>
                 <p className="text-slate-500">Polarity, balance</p>
@@ -353,8 +215,8 @@ const AstroAnalysis = () => {
           <p className="text-xs text-slate-400">
             W.D. Gann incorporated astrological cycles into his market analysis, believing that planetary movements 
             and lunar phases correlated with market behavior. While controversial, many traders still use these 
-            techniques to identify potential turning points. The positions shown are simplified for demonstration - 
-            in production, this would connect to an ephemeris API for accurate real-time data.
+            techniques to identify potential turning points. The positions shown are derived from the backend, 
+            which uses the `pyswisseph` library for accurate real-time data.
           </p>
         </CardContent>
       </Card>

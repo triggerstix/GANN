@@ -23,45 +23,24 @@ const TimeCycles = ({ symbol }) => {
   ]
 
   useEffect(() => {
-    // Generate sample data with cyclical patterns
-    const generateData = () => {
-      const data = []
-      let price = 150
-      
-      for (let i = 0; i < 365; i++) {
-        // Add cyclical components
-        const cycle30 = 10 * Math.sin((i * 2 * Math.PI) / 30)
-        const cycle90 = 15 * Math.sin((i * 2 * Math.PI) / 90)
-        const cycle180 = 20 * Math.sin((i * 2 * Math.PI) / 180)
-        const noise = (Math.random() - 0.5) * 5
-        
-        price = 150 + cycle30 + cycle90 + cycle180 + noise
-        
-        // Check if this day is a cycle turning point
-        const cycleMarkers = []
-        selectedCycles.forEach(cycle => {
-          if (i % cycle === 0 && i > 0) {
-            cycleMarkers.push(cycle)
-          }
-        })
-        
-        data.push({
-          day: i + 1,
-          date: `Day ${i + 1}`,
-          price: parseFloat(price.toFixed(2)),
-          cycle30: 150 + cycle30,
-          cycle90: 150 + cycle90,
-          cycle180: 150 + cycle180,
-          cycleMarkers: cycleMarkers,
-          isCyclePoint: cycleMarkers.length > 0
-        })
+    const fetchTimeCyclesData = async () => {
+      setLoading(true)
+      try {
+        const response = await fetch(`/api/time_cycles_data/${symbol}`)
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`)
+        }
+        const data = await response.json()
+        setPriceData(data)
+      } catch (error) {
+        console.error('Error fetching time cycles data:', error)
+      } finally {
+        setLoading(false)
       }
-      return data
     }
 
-    setPriceData(generateData())
-    setLoading(false)
-  }, [symbol, selectedCycles])
+    fetchTimeCyclesData()
+  }, [symbol])
 
   const toggleCycle = (days) => {
     if (selectedCycles.includes(days)) {
@@ -71,7 +50,7 @@ const TimeCycles = ({ symbol }) => {
     }
   }
 
-  // Calculate next cycle dates
+  // Calculate next cycle dates (client-side for now)
   const calculateNextCycles = () => {
     const today = new Date()
     return gannCycles.map(cycle => {

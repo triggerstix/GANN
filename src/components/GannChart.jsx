@@ -3,41 +3,34 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button.jsx'
 import { Input } from '@/components/ui/input.jsx'
 import { Label } from '@/components/ui/label.jsx'
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ReferenceLine } from 'recharts'
-import { TrendingUp, Plus, Minus } from 'lucide-react'
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
+import { TrendingUp } from 'lucide-react'
 
 const GannChart = ({ symbol }) => {
   const [priceData, setPriceData] = useState([])
   const [pivotPrice, setPivotPrice] = useState(150)
   const [pivotIndex, setPivotIndex] = useState(10)
   const [showAngles, setShowAngles] = useState(true)
-  const [showFans, setShowFans] = useState(true)
   const [loading, setLoading] = useState(true)
 
-  // Generate sample price data (in production, this would fetch from API)
   useEffect(() => {
-    const generateData = () => {
-      const data = []
-      let price = 140 + Math.random() * 20
-      for (let i = 0; i < 60; i++) {
-        price = price + (Math.random() - 0.48) * 5
-        data.push({
-          date: `Day ${i + 1}`,
-          price: parseFloat(price.toFixed(2)),
-          volume: Math.floor(Math.random() * 1000000) + 500000,
-          // Gann angle calculations
-          gann1x1: pivotPrice + (i - pivotIndex) * 1,
-          gann1x2: pivotPrice + (i - pivotIndex) * 0.5,
-          gann2x1: pivotPrice + (i - pivotIndex) * 2,
-          gann1x3: pivotPrice + (i - pivotIndex) * 0.33,
-          gann3x1: pivotPrice + (i - pivotIndex) * 3,
-        })
+    const fetchGannChartData = async () => {
+      setLoading(true)
+      try {
+        const response = await fetch(`/api/gann_chart_data/${symbol}?pivotPrice=${pivotPrice}&pivotIndex=${pivotIndex}`)
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`)
+        }
+        const data = await response.json()
+        setPriceData(data)
+      } catch (error) {
+        console.error('Error fetching Gann chart data:', error)
+      } finally {
+        setLoading(false)
       }
-      return data
     }
 
-    setPriceData(generateData())
-    setLoading(false)
+    fetchGannChartData()
   }, [symbol, pivotPrice, pivotIndex])
 
   const gannAngles = [
@@ -141,7 +134,7 @@ const GannChart = ({ symbol }) => {
 
           {/* Pivot Index */}
           <div className="space-y-2">
-            <Label className="text-slate-300">Pivot Day</Label>
+            <Label className="text-slate-300">Pivot Day (0-59)</Label>
             <Input
               type="number"
               value={pivotIndex}
