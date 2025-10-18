@@ -10,7 +10,7 @@ const symbols = {
 
 const currentPrices: Record<string, number> = {};
 
-export function getMarketInfo(symbol: string) {
+export function getMarketData(symbol: string) {
   const symbolData = symbols[symbol as keyof typeof symbols];
   if (!symbolData) return null;
 
@@ -37,7 +37,7 @@ export function getMarketInfo(symbol: string) {
   };
 }
 
-function getHistoricalData(symbol: string, days: number = 60) {
+export function getHistoricalData(symbol: string, days: number = 60) {
   const symbolData = symbols[symbol as keyof typeof symbols];
   if (!symbolData) return [];
 

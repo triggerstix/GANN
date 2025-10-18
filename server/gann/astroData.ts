@@ -31,3 +31,11 @@ export function getPlanetaryAspects() {
   ];
 }
 
+export function getAstrologicalData() {
+  return {
+    lunarPhase: getLunarPhase(),
+    planetaryPositions: getPlanetaryPositions(),
+    planetaryAspects: getPlanetaryAspects(),
+  };
+}
+
