@@ -1,93 +1,69 @@
 // Market data service for W.D. Gann Trading Platform
-import { z } from "zod";
+import YahooFinance from 'yahoo-finance2';
 
-export const MarketDataSchema = z.object({
-  symbol: z.string(),
-  price: z.number(),
-  change: z.number(),
-  changePercent: z.number(),
-  high: z.number(),
-  low: z.number(),
-  open: z.number(),
-  volume: z.number(),
-  timestamp: z.date(),
-});
+// Create instance
+const yahooFinance = new YahooFinance();
 
-export type MarketData = z.infer<typeof MarketDataSchema>;
-
-export const HistoricalDataPointSchema = z.object({
-  date: z.string(),
-  open: z.number(),
-  high: z.number(),
-  low: z.number(),
-  close: z.number(),
-  volume: z.number(),
-});
-
-export type HistoricalDataPoint = z.infer<typeof HistoricalDataPointSchema>;
-
-// Simulate market data for demonstration
-export function getMarketData(symbol: string): MarketData {
-  const basePrice = getBasePrice(symbol);
-  const change = (Math.random() - 0.5) * basePrice * 0.05;
-  const changePercent = (change / basePrice) * 100;
-  
-  return {
-    symbol,
-    price: basePrice + change,
-    change,
-    changePercent,
-    high: basePrice + Math.abs(change) * 1.5,
-    low: basePrice - Math.abs(change) * 1.5,
-    open: basePrice,
-    volume: Math.floor(Math.random() * 10000000) + 1000000,
-    timestamp: new Date(),
-  };
+// Get real-time market data from Yahoo Finance
+export async function getMarketData(symbol: string) {
+  try {
+    const quote: any = await yahooFinance.quote(symbol);
+    
+    if (!quote) {
+      throw new Error(`No data found for symbol ${symbol}`);
+    }
+    
+    const price = quote.regularMarketPrice || 0;
+    const previousClose = quote.regularMarketPreviousClose || price;
+    const change = price - previousClose;
+    const changePercent = previousClose !== 0 ? (change / previousClose) * 100 : 0;
+    
+    return {
+      symbol: quote.symbol || symbol,
+      price: price,
+      change: change,
+      changePercent: changePercent,
+      high: quote.regularMarketDayHigh || price,
+      low: quote.regularMarketDayLow || price,
+      open: quote.regularMarketOpen || price,
+      volume: quote.regularMarketVolume || 0,
+      timestamp: new Date().toISOString(),
+    };
+  } catch (error) {
+    console.error(`Error fetching market data for ${symbol}:`, error);
+    throw new Error(`Failed to fetch market data for ${symbol}`);
+  }
 }
 
-export function getHistoricalData(symbol: string, days: number = 90): HistoricalDataPoint[] {
-  const data: HistoricalDataPoint[] = [];
-  const basePrice = getBasePrice(symbol);
-  let currentPrice = basePrice;
-  
-  const endDate = new Date();
-  
-  for (let i = days - 1; i >= 0; i--) {
-    const date = new Date(endDate);
-    date.setDate(date.getDate() - i);
+// Get historical data from Yahoo Finance
+export async function getHistoricalData(symbol: string, days: number = 90) {
+  try {
+    const endDate = new Date();
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - days);
     
-    const dailyChange = (Math.random() - 0.5) * currentPrice * 0.03;
-    const open = currentPrice;
-    const close = currentPrice + dailyChange;
-    const high = Math.max(open, close) + Math.abs(dailyChange) * 0.5;
-    const low = Math.min(open, close) - Math.abs(dailyChange) * 0.5;
-    
-    data.push({
-      date: date.toISOString().split('T')[0],
-      open,
-      high,
-      low,
-      close,
-      volume: Math.floor(Math.random() * 5000000) + 500000,
+    const result: any = await yahooFinance.historical(symbol, {
+      period1: startDate,
+      period2: endDate,
+      interval: '1d',
     });
     
-    currentPrice = close;
+    if (!result || result.length === 0) {
+      throw new Error(`No historical data found for symbol ${symbol}`);
+    }
+    
+    return result.map((item: any) => ({
+      date: item.date.toISOString().split('T')[0],
+      open: item.open || 0,
+      high: item.high || 0,
+      low: item.low || 0,
+      close: item.close || 0,
+      volume: item.volume || 0,
+    }));
+  } catch (error) {
+    console.error(`Error fetching historical data for ${symbol}:`, error);
+    throw new Error(`Failed to fetch historical data for ${symbol}`);
   }
-  
-  return data;
-}
-
-function getBasePrice(symbol: string): number {
-  const prices: Record<string, number> = {
-    'AAPL': 180,
-    'GOOGL': 140,
-    'MSFT': 380,
-    'TSLA': 250,
-    'SPY': 450,
-    'BTC-USD': 45000,
-    'ETH-USD': 2500,
-  };
-  return prices[symbol] || 100;
 }
 
 // Calculate Gann angles from a pivot point
