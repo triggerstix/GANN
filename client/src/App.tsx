@@ -5,22 +5,12 @@ import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
-import GannChart from "./pages/GannChart";
-import SquareOfNine from "./pages/SquareOfNine";
-import TimeCycles from "./pages/TimeCycles";
-import AstroAnalysis from "./pages/AstroAnalysis";
-import MarketData from "./pages/MarketData";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
   return (
     <Switch>
       <Route path={"/"} component={Home} />
-      <Route path={"/gann-chart"} component={GannChart} />
-      <Route path={"/square-of-nine"} component={SquareOfNine} />
-      <Route path={"/time-cycles"} component={TimeCycles} />
-      <Route path={"/astro-analysis"} component={AstroAnalysis} />
-      <Route path={"/market-data"} component={MarketData} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />
@@ -37,7 +27,7 @@ function App() {
   return (
     <ErrorBoundary>
       <ThemeProvider
-        defaultTheme="dark"
+        defaultTheme="light"
         // switchable
       >
         <TooltipProvider>
