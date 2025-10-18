@@ -174,7 +174,7 @@ export default function AstroAnalysis() {
                       {planet.sign} {planet.signSymbol}
                     </p>
                     <p className="text-slate-400 text-sm">
-                      {planet.degrees.toFixed(2)}° {planet.retrograde && "(R)"}
+                      {planet.degrees?.toFixed(2) || '0.00'}° {planet.retrograde && "(R)"}
                     </p>
                   </div>
                 ))}
