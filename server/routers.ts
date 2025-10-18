@@ -2,9 +2,6 @@ import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, router } from "./_core/trpc";
-import { z } from "zod";
-import { getMarketData, getHistoricalData, getGannAnglesData, getTimeCyclesData } from "./gann/marketData";
-import { getAstrologicalData } from "./gann/astroData";
 
 export const appRouter = router({
   system: systemRouter,
@@ -20,43 +17,12 @@ export const appRouter = router({
     }),
   }),
 
-  // Gann trading analysis router
-  gann: router({
-    marketInfo: publicProcedure
-      .input(z.object({ symbol: z.string() }))
-      .query(async ({ input }) => {
-        return getMarketData(input.symbol);
-      }),
-    
-    historicalData: publicProcedure
-      .input(z.object({ symbol: z.string(), days: z.number().optional() }))
-      .query(async ({ input }) => {
-        return getHistoricalData(input.symbol, input.days || 30);
-      }),
-    
-    astroData: publicProcedure
-      .query(async () => {
-        return getAstrologicalData();
-      }),
-    
-    gannChartData: publicProcedure
-      .input(z.object({ 
-        symbol: z.string(), 
-        pivotPrice: z.number(), 
-        pivotIndex: z.number(),
-        days: z.number().optional() 
-      }))
-      .query(async ({ input }) => {
-        return getGannAnglesData(input.symbol, input.pivotPrice, input.pivotIndex, input.days || 60);
-      }),
-    
-    timeCyclesData: publicProcedure
-      .input(z.object({ symbol: z.string(), days: z.number().optional() }))
-      .query(async ({ input }) => {
-        return getTimeCyclesData(input.symbol, input.days || 365);
-      }),
-  }),
+  // TODO: add feature routers here, e.g.
+  // todo: router({
+  //   list: protectedProcedure.query(({ ctx }) =>
+  //     db.getUserTodos(ctx.user.id)
+  //   ),
+  // }),
 });
 
 export type AppRouter = typeof appRouter;
-
