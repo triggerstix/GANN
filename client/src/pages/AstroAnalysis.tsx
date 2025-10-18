@@ -6,9 +6,11 @@ import { Badge } from "@/components/ui/badge";
 import { Star, ArrowLeft, Moon, Orbit } from "lucide-react";
 
 export default function AstroAnalysis() {
-  const { data: lunarPhase, isLoading: lunarLoading } = trpc.gann.lunarPhase.useQuery();
-  const { data: planetaryPositions, isLoading: planetsLoading } = trpc.gann.planetaryPositions.useQuery();
-  const { data: planetaryAspects, isLoading: aspectsLoading } = trpc.gann.planetaryAspects.useQuery();
+  const { data: astroData, isLoading } = trpc.gann.astroData.useQuery();
+  
+  const lunarPhase = astroData?.lunarPhase;
+  const planetaryPositions = astroData?.planetaryPositions;
+  const planetaryAspects = astroData?.planetaryAspects;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
@@ -37,7 +39,7 @@ export default function AstroAnalysis() {
               <CardDescription className="text-slate-400">Moon's influence on market sentiment</CardDescription>
             </CardHeader>
             <CardContent>
-              {lunarLoading ? (
+              {isLoading ? (
                 <div className="h-32 flex items-center justify-center">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-yellow-500"></div>
                 </div>
@@ -72,7 +74,7 @@ export default function AstroAnalysis() {
               <CardDescription className="text-slate-400">Current positions of key planets</CardDescription>
             </CardHeader>
             <CardContent>
-              {planetsLoading ? (
+              {isLoading ? (
                 <div className="h-32 flex items-center justify-center">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
                 </div>
@@ -112,7 +114,7 @@ export default function AstroAnalysis() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {aspectsLoading ? (
+              {isLoading ? (
                 <div className="h-32 flex items-center justify-center">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500"></div>
                 </div>
