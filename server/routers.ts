@@ -21,15 +21,15 @@ export const appRouter = router({
   }),
 
   gann: router({
-    marketData: publicProcedure
+    getMarketData: publicProcedure
       .input(z.object({ symbol: z.string() }))
       .query(({ input }) => marketData.getMarketData(input.symbol)),
     
-    historicalData: publicProcedure
+    getHistoricalData: publicProcedure
       .input(z.object({ symbol: z.string(), days: z.number().optional() }))
       .query(({ input }) => marketData.getHistoricalData(input.symbol, input.days)),
     
-    gannAngles: publicProcedure
+    calculateGannAngles: publicProcedure
       .input(z.object({ 
         pivotPrice: z.number(), 
         pivotDate: z.string(), 
@@ -39,21 +39,21 @@ export const appRouter = router({
         marketData.calculateGannAngles(input.pivotPrice, input.pivotDate, input.currentDate)
       ),
     
-    lunarPhase: publicProcedure
+    getLunarPhase: publicProcedure
       .input(z.object({ date: z.string().optional() }))
       .query(({ input }) => {
         const date = input.date ? new Date(input.date) : new Date();
         return astroData.getLunarPhase(date);
       }),
     
-    planetaryPositions: publicProcedure
+    getPlanetaryPositions: publicProcedure
       .input(z.object({ date: z.string().optional() }))
       .query(({ input }) => {
         const date = input.date ? new Date(input.date) : new Date();
         return astroData.getPlanetaryPositions(date);
       }),
     
-    planetaryAspects: publicProcedure
+    getPlanetaryAspects: publicProcedure
       .input(z.object({ date: z.string().optional() }))
       .query(({ input }) => {
         const date = input.date ? new Date(input.date) : new Date();

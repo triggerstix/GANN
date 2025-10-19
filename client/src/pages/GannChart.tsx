@@ -14,7 +14,7 @@ export default function GannChart() {
     new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
   );
 
-  const gannAnglesQuery = trpc.gann.gannAngles.useQuery({
+  const gannAnglesQuery = trpc.gann.calculateGannAngles.useQuery({
     pivotPrice: parseFloat(pivotPrice) || 100,
     pivotDate,
     currentDate,

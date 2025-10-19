@@ -10,6 +10,7 @@ import GannChart from "./pages/GannChart";
 import SquareOfNine from "./pages/SquareOfNine";
 import TimeCycles from "./pages/TimeCycles";
 import AstroAnalysis from "./pages/AstroAnalysis";
+import HistoricalCharts from "./pages/HistoricalCharts";
 
 function Router() {
   return (
@@ -20,6 +21,7 @@ function Router() {
       <Route path={"/square-of-nine"} component={SquareOfNine} />
       <Route path={"/time-cycles"} component={TimeCycles} />
       <Route path={"/astro-analysis"} component={AstroAnalysis} />
+      <Route path={"/historical-charts"} component={HistoricalCharts} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />

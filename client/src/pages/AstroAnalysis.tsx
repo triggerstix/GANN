@@ -10,9 +10,9 @@ import { ArrowLeft, Moon, RefreshCw } from "lucide-react";
 export default function AstroAnalysis() {
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
 
-  const lunarQuery = trpc.gann.lunarPhase.useQuery({ date: selectedDate });
-  const planetaryQuery = trpc.gann.planetaryPositions.useQuery({ date: selectedDate });
-  const aspectsQuery = trpc.gann.planetaryAspects.useQuery({ date: selectedDate });
+  const lunarQuery = trpc.gann.getLunarPhase.useQuery({ date: selectedDate });
+  const planetaryQuery = trpc.gann.getPlanetaryPositions.useQuery({ date: selectedDate });
+  const aspectsQuery = trpc.gann.getPlanetaryAspects.useQuery({ date: selectedDate });
 
   const handleRefresh = () => {
     lunarQuery.refetch();

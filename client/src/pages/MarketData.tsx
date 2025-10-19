@@ -11,8 +11,8 @@ export default function MarketData() {
   const [symbol, setSymbol] = useState("AAPL");
   const [inputSymbol, setInputSymbol] = useState("AAPL");
   
-  const marketDataQuery = trpc.gann.marketData.useQuery({ symbol });
-  const historicalDataQuery = trpc.gann.historicalData.useQuery({ symbol, days: 90 });
+  const marketDataQuery = trpc.gann.getMarketData.useQuery({ symbol });
+  const historicalDataQuery = trpc.gann.getHistoricalData.useQuery({ symbol, days: 90 });
 
   const handleRefresh = () => {
     marketDataQuery.refetch();
