@@ -1,16 +1,10 @@
 import { useState } from 'react';
 import { trpc } from '../lib/trpc';
-import { AdvancedChart } from '../components/AdvancedChart';
+import { WebullChart } from '../components/WebullChart';
 
 export default function HistoricalCharts() {
   const [symbol, setSymbol] = useState('AAPL');
   const [customSymbol, setCustomSymbol] = useState('');
-  const [showVolume, setShowVolume] = useState(true);
-  const [showGannAngles, setShowGannAngles] = useState(false);
-  const [gannPivotPrice, setGannPivotPrice] = useState('100');
-  const [gannPivotDate, setGannPivotDate] = useState(
-    new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
-  );
 
   const { data: historicalData, isLoading } = trpc.gann.getHistoricalData.useQuery({
     symbol,
@@ -37,9 +31,9 @@ export default function HistoricalCharts() {
             >
               ← Back
             </a>
-            <h1 className="text-4xl font-bold text-white mb-2">📊 Advanced Charts</h1>
+            <h1 className="text-4xl font-bold text-white mb-2">📊 Webull-Style Advanced Charts</h1>
             <p className="text-slate-300">
-              Professional candlestick charts with Webull-style features
+              Professional candlestick charts with zoom, pan, and technical indicators
             </p>
           </div>
         </div>
@@ -78,84 +72,11 @@ export default function HistoricalCharts() {
             />
             <button
               onClick={handleLoadCustomSymbol}
-              className="px-6 py-2 bg-red-600 text-white rounded font-medium hover:bg-red-700 transition-colors"
+              className="px-6 py-2 bg-blue-600 text-white rounded font-medium hover:bg-blue-700 transition-colors"
             >
               Load
             </button>
           </div>
-        </div>
-
-        {/* Chart Options */}
-        <div className="bg-slate-800 rounded-lg p-6 mb-6 border border-slate-700">
-          <h2 className="text-xl font-semibold text-white mb-4">Chart Options</h2>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Volume Toggle */}
-            <div className="flex items-center justify-between">
-              <label className="text-slate-300 font-medium">Show Volume</label>
-              <button
-                onClick={() => setShowVolume(!showVolume)}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                  showVolume ? 'bg-blue-600' : 'bg-slate-600'
-                }`}
-              >
-                <span
-                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                    showVolume ? 'translate-x-6' : 'translate-x-1'
-                  }`}
-                />
-              </button>
-            </div>
-
-            {/* Gann Angles Toggle */}
-            <div className="flex items-center justify-between">
-              <label className="text-slate-300 font-medium">Show Gann Angles</label>
-              <button
-                onClick={() => setShowGannAngles(!showGannAngles)}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                  showGannAngles ? 'bg-blue-600' : 'bg-slate-600'
-                }`}
-              >
-                <span
-                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                    showGannAngles ? 'translate-x-6' : 'translate-x-1'
-                  }`}
-                />
-              </button>
-            </div>
-          </div>
-
-          {/* Gann Angle Settings */}
-          {showGannAngles && (
-            <div className="mt-6 pt-6 border-t border-slate-700">
-              <h3 className="text-lg font-semibold text-white mb-4">Gann Angle Settings</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-slate-300 text-sm font-medium mb-2">
-                    Pivot Price
-                  </label>
-                  <input
-                    type="number"
-                    value={gannPivotPrice}
-                    onChange={(e) => setGannPivotPrice(e.target.value)}
-                    className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="100.00"
-                  />
-                </div>
-                <div>
-                  <label className="block text-slate-300 text-sm font-medium mb-2">
-                    Pivot Date
-                  </label>
-                  <input
-                    type="date"
-                    value={gannPivotDate}
-                    onChange={(e) => setGannPivotDate(e.target.value)}
-                    className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-              </div>
-            </div>
-          )}
         </div>
 
         {/* Chart */}
@@ -167,15 +88,13 @@ export default function HistoricalCharts() {
             </div>
           </div>
         ) : historicalData && historicalData.length > 0 ? (
-          <AdvancedChart
-            symbol={symbol}
-            data={historicalData}
-            height={600}
-            showVolume={showVolume}
-            showGannAngles={showGannAngles}
-            gannPivotPrice={showGannAngles ? parseFloat(gannPivotPrice) : undefined}
-            gannPivotDate={showGannAngles ? gannPivotDate : undefined}
-          />
+          <div className="bg-slate-800 rounded-lg p-6 border border-slate-700">
+            <WebullChart
+              symbol={symbol}
+              data={historicalData}
+              height={600}
+            />
+          </div>
         ) : (
           <div className="flex items-center justify-center h-96 bg-slate-800 rounded-lg border border-slate-700">
             <div className="text-center">
@@ -200,37 +119,58 @@ export default function HistoricalCharts() {
               <span className="text-2xl">🔍</span>
               <div>
                 <h4 className="font-semibold text-white mb-1">Zoom & Pan</h4>
-                <p className="text-slate-300">Scroll to zoom, drag to pan, pinch on mobile</p>
+                <p className="text-slate-300">Zoom in/out and pan left/right with dedicated buttons</p>
               </div>
             </div>
             <div className="flex items-start gap-3">
               <span className="text-2xl">➕</span>
               <div>
-                <h4 className="font-semibold text-white mb-1">Crosshair</h4>
-                <p className="text-slate-300">Hover to see exact price and time values</p>
+                <h4 className="font-semibold text-white mb-1">Detailed Tooltips</h4>
+                <p className="text-slate-300">Hover to see OHLCV data, change, and percentage</p>
               </div>
             </div>
             <div className="flex items-start gap-3">
               <span className="text-2xl">📊</span>
               <div>
-                <h4 className="font-semibold text-white mb-1">Volume Bars</h4>
-                <p className="text-slate-300">Color-coded volume histogram below price</p>
+                <h4 className="font-semibold text-white mb-1">Volume Analysis</h4>
+                <p className="text-slate-300">Separate volume chart with toggle control</p>
               </div>
             </div>
             <div className="flex items-start gap-3">
-              <span className="text-2xl">📐</span>
+              <span className="text-2xl">📉</span>
               <div>
-                <h4 className="font-semibold text-white mb-1">Gann Angles</h4>
-                <p className="text-slate-300">Overlay Gann support/resistance lines</p>
+                <h4 className="font-semibold text-white mb-1">Technical Indicators</h4>
+                <p className="text-slate-300">SMA 20/50, EMA 12, Bollinger Bands overlays</p>
               </div>
             </div>
             <div className="flex items-start gap-3">
               <span className="text-2xl">⏱️</span>
               <div>
                 <h4 className="font-semibold text-white mb-1">Multiple Timeframes</h4>
-                <p className="text-slate-300">1m, 5m, 15m, 1H, 4H, 1D, 1W, 1M (coming soon)</p>
+                <p className="text-slate-300">1m, 5m, 15m, 1H, 4H, 1D, 1W, 1M (UI ready)</p>
               </div>
             </div>
+          </div>
+        </div>
+
+        {/* About Section */}
+        <div className="mt-6 bg-slate-800/50 rounded-lg p-6 border border-slate-700">
+          <h3 className="text-xl font-semibold text-white mb-4">About Professional Charts</h3>
+          <div className="text-slate-400 text-sm space-y-3">
+            <p>
+              <strong className="text-slate-300">Candlestick Charts</strong> are the industry standard for visualizing price action. Each candle shows four key prices: Open, High, Low, and Close (OHLC). Green candles indicate the price closed higher than it opened (bullish), while red candles show the price closed lower (bearish).
+            </p>
+            <p>
+              <strong className="text-slate-300">Technical Indicators</strong> help identify trends and potential trading opportunities:
+            </p>
+            <ul className="list-disc list-inside ml-4 space-y-1">
+              <li><strong>SMA (Simple Moving Average):</strong> Smooths price data to identify trend direction</li>
+              <li><strong>EMA (Exponential Moving Average):</strong> Gives more weight to recent prices for faster signals</li>
+              <li><strong>Bollinger Bands:</strong> Shows volatility and potential overbought/oversold conditions</li>
+            </ul>
+            <p>
+              <strong className="text-slate-300">Volume</strong> confirms price movements. High volume on green candles suggests strong buying pressure, while high volume on red candles indicates strong selling pressure.
+            </p>
           </div>
         </div>
       </div>
