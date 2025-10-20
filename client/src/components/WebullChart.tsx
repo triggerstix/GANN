@@ -11,6 +11,7 @@ import {
   ReferenceLine,
 } from 'recharts';
 import { calculateSMA, calculateEMA, calculateBollingerBands } from '@/lib/indicators';
+import { DrawingTools, Drawing } from './DrawingTools';
 
 interface CandleData {
   date: string;
@@ -123,6 +124,7 @@ export function WebullChart({ data, symbol, height = 600 }: WebullChartProps) {
   const [indicators, setIndicators] = useState<string[]>([]);
   const [showVolume, setShowVolume] = useState(true);
   const [zoomDomain, setZoomDomain] = useState<[number, number] | null>(null);
+  const [drawings, setDrawings] = useState<Drawing[]>([]);
 
   // Process data for candlesticks
   const chartData = useMemo(() => {
@@ -355,8 +357,13 @@ export function WebullChart({ data, symbol, height = 600 }: WebullChartProps) {
         </div>
       </div>
 
-      {/* Price Chart */}
-      <div className="rounded-lg overflow-hidden border border-slate-700 bg-slate-900/50 mb-4">
+      {/* Price Chart with Drawing Overlay */}
+      <div className="rounded-lg overflow-hidden border border-slate-700 bg-slate-900/50 mb-4 relative">
+        <DrawingTools
+          width={950}
+          height={showVolume ? height * 0.7 : height}
+          onDrawingsChange={(newDrawings) => setDrawings(newDrawings)}
+        />
         <ResponsiveContainer width="100%" height={showVolume ? height * 0.7 : height}>
           <ComposedChart data={displayData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
             <defs>

@@ -55,7 +55,7 @@ export default function Home() {
       title: "Historical Charts",
       description: "View historical price data with technical indicators",
       icon: BarChart3,
-      path: "/market-data",
+      path: "/advanced-charts",
       color: "text-cyan-500",
     },
   ];

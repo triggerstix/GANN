@@ -22,6 +22,7 @@ function Router() {
       <Route path={"/time-cycles"} component={TimeCycles} />
       <Route path={"/astro-analysis"} component={AstroAnalysis} />
       <Route path={"/historical-charts"} component={HistoricalCharts} />
+      <Route path={"/advanced-charts"} component={HistoricalCharts} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />
