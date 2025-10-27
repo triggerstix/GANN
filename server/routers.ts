@@ -3,10 +3,10 @@ import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, router } from "./_core/trpc";
 import { z } from "zod";
-import * as marketData from "./services/marketData";
+import * as marketData from "./services/marketDataApi";
 import * as astroData from "./services/astroData";
 
-export const appRouter = router({
+export const appRoutier = router({
   system: systemRouter,
 
   auth: router({
@@ -26,8 +26,15 @@ export const appRouter = router({
       .query(({ input }) => marketData.getMarketData(input.symbol)),
     
     getHistoricalData: publicProcedure
+      .input(z.object({ symbol: z.string(), days: z.number().optional(), interval: z.string().optional() }))
+      .query(({ input }) => marketData.getHistoricalData(input.symbol, input.days, input.interval)),
+    
+    findMajorPivots: publicProcedure
       .input(z.object({ symbol: z.string(), days: z.number().optional() }))
-      .query(({ input }) => marketData.getHistoricalData(input.symbol, input.days)),
+      .query(async ({ input }) => {
+        const data = await marketData.getHistoricalData(input.symbol, input.days);
+        return marketData.findMajorPivots(data);
+      }),
     
     calculateGannAngles: publicProcedure
       .input(z.object({ 
