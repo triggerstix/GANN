@@ -6,7 +6,7 @@ import { z } from "zod";
 import * as marketData from "./services/marketDataApi";
 import * as astroData from "./services/astroData";
 
-export const appRoutier = router({
+export const appRouter = router({
   system: systemRouter,
 
   auth: router({
